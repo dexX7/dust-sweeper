@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  
+  <title>Redeem multisig txs</title>
+  
+  <link rel="stylesheet" href="http://netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
+  <link rel="stylesheet" href="http://netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap-theme.min.css">
+  
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+  <script src="http://netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+  <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.3.0-beta.5/angular.min.js"></script>
+  
+  <script src="biginteger.js"></script>
+  <script src="app.js"></script>
+  
+  <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+  <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+  <!--[if lt IE 9]>
+    <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+    <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+  <![endif]-->
+</head>
+<body style="overflow-y: scroll;">
+  <div class="container" ng-app="redeemTxs" ng-controller="TxsController">
+    <form class="form-inline" style="margin-top:30px;">
+      <fieldset>
+        <legend>Coin Sweeper (<a href="http://mastercointalk.org/index.php?topic=353.msg1022#msg1022" target="_blank">instructions</a>, <a href="https://bitcointalk.org/index.php?topic=573342.0" target="_blank">bitcointalk.org</a>)</legend>
+        <div class="control-group">
+          <label class="control-label" for="address" style="margin-right:10px">Address:</label>
+          <input id="address" class="form-control input" style="width:340px" type="string" ng-model="address" required focus state>
+          <label class="control-label" for="minconf" style="margin-left:10px;margin-right:10px;">Min. confirmations:</label>
+          <input id="minconf" class="form-control input" style="width:110px" type="number" ng-model="minconf" required>
+          <label class="control-label" for="maxconf" style="margin-left:10px;margin-right:10px;">Max. confirmations:</label>
+          <input id="maxconf" class="form-control input" style="width:110px" type="number" ng-model="maxconf" required>                     
+        </div>
+        <div class="form-actions" style="margin-top:20px;margin-bottom:15px;">
+          <button class="btn btn-primary" ng-click="fetch()" style="padding:6px 22px;">Get unspent outputs</button>
+          <button class="btn btn-default" ng-show="hasData()" ng-click="reset()" style="padding:6px 22px;">Reset</button>
+        </div>        
+      </fieldset>
+    </form>
+    <p class="text-muted" ng-model="status">
+      {{ status }}
+    </p>
+    <div ng-show="hasData()" style="margin-bottom:10px">
+      <table class="table table-condensed">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Hash</th>
+            <th>Vout</th>
+            <th>Amount</th>
+            <th>Type</th>
+            <th>Confirmations</th>
+            <th>&nbsp;</th>
+          </tr>
+        </thead>
+        <tbody id="block">
+          <tr ng-repeat="tx in outputs">
+            <td>{{ $index + 1 }}</td>
+            <td><a href="https://blockchain.info/tx//{{ tx.txid }}">{{ tx.txid }}</a></td>
+            <td>{{ tx.vout }}</td>
+            <td>{{ tx.amount }}</td>
+            <td>{{ tx.type }}</td>
+            <td>{{ tx.confirmations }}</td>
+            <td><a class="btn-link" ng-click="remove($index)">Delete</a></td>
+          </tr>
+        </tbody>
+      </table>
+      <div style="word-wrap:break-word;" ng-model="redeemTx" ng-show="!loading">
+        <div ng-show="!redeemTx.dust">
+          <p>
+            <b>Sign and broadcast this hex string to redeem the unspent outputs:</b>
+          </p>
+          <pre>{{ redeemTx.hex }}</pre>
+          <p>
+            This transaction transfers <b>{{ redeemTx.amount }}</b> Bitcoin to <b>{{ redeemTx.recipient }}</b> with an attached fee of <b>{{ redeemTx.fee }}</b> Bitcoin.        
+          </p>
+        </div>
+        <p ng-show="redeemTx.dust">
+          <b>The combined output amount is below the dust threshold.</b> Please add more unspent outputs, if you like to redeem your dust.
+        </p>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>
